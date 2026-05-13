@@ -1,25 +1,88 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthController extends GetxController {
+  // --- STATE REAKTIF (dipertahankan agar UI/View yang ada tidak perlu diubah) ---
   var isLogin = false.obs;
   var username = ''.obs;
+  var currentRole = 'user'.obs; // RBAC: 'user' | 'admin'
+
+  final SupabaseClient _supabase = Supabase.instance.client;
+  StreamSubscription<AuthState>? _authSub;
 
   @override
   void onInit() {
     super.onInit();
+
+    // Cek state awal (restore session kalau user sudah login sebelumnya)
     checkLoginStatus();
+
+    // Sinkronisasi reaktif dengan perubahan auth dari Supabase.
+    _authSub = _supabase.auth.onAuthStateChange.listen((data) async {
+      final user = data.session?.user;
+      if (user == null) {
+        _resetState();
+      } else {
+        isLogin.value = true;
+        await _loadProfileFromUsersTable(user.id);
+      }
+    });
   }
 
-  // Cek status login dari SharedPreferences
+  @override
+  void onClose() {
+    _authSub?.cancel();
+    super.onClose();
+  }
+
+  // ---------------------------------------------------------------------------
+  // CHECK LOGIN STATUS
+  // Restore state dari session + tabel public.users saat aplikasi dibuka.
+  // ---------------------------------------------------------------------------
   Future<void> checkLoginStatus() async {
-    final prefs = await SharedPreferences.getInstance();
-    isLogin.value = prefs.getBool('isLogin') ?? false;
-    username.value = prefs.getString('username') ?? '';
+    final user = _supabase.auth.currentUser;
+    if (user == null) {
+      _resetState();
+      return;
+    }
+
+    isLogin.value = true;
+    await _loadProfileFromUsersTable(user.id);
   }
 
-  // Fungsi Register
+  /// Ambil username & role dari tabel public.users berdasarkan UUID user.
+  Future<void> _loadProfileFromUsersTable(String uid) async {
+    try {
+      final data = await _supabase
+          .from('users')
+          .select('username, role')
+          .eq('id', uid)
+          .single();
+
+      username.value = (data['username'] as String?) ?? '';
+      currentRole.value = (data['role'] as String?) ?? 'user';
+    } catch (e) {
+      // Kalau row belum ada (misal: dibuat di dashboard tanpa row users),
+      // fallback aman tanpa menggagalkan login.
+      username.value = '';
+      currentRole.value = 'user';
+    }
+  }
+
+  void _resetState() {
+    isLogin.value = false;
+    username.value = '';
+    currentRole.value = 'user';
+  }
+
+  // ---------------------------------------------------------------------------
+  // REGISTER
+  // Pola: username -> email dummy "<username>@dummy.com".
+  // Role otomatis 'admin' jika username == 'admin' (case-insensitive).
+  // ---------------------------------------------------------------------------
   Future<bool> register(String user, String pass, String confirmPass) async {
     if (user.isEmpty || pass.isEmpty) {
       Get.snackbar('Error', 'Username dan password tidak boleh kosong',
@@ -33,22 +96,47 @@ class AuthController extends GetxController {
       return false;
     }
 
-    final prefs = await SharedPreferences.getInstance();
-    
-    // Simpan ke SharedPreferences
-    await prefs.setString('username', user);
-    await prefs.setString('password', pass);
-    await prefs.setBool('isLogin', false);
-    
-    isLogin.value = false;
-    username.value = '';
-    
-    Get.snackbar('Berhasil', 'Register berhasil, silakan login',
-        backgroundColor: Colors.green, colorText: Colors.white);
-    return true;
+    try {
+      // 1) Buat akun di auth.users
+      final response = await _supabase.auth.signUp(
+        email: '$user@dummy.com',
+        password: pass,
+      );
+
+      if (response.user == null) {
+        Get.snackbar('Error', 'Registrasi gagal, coba lagi',
+            backgroundColor: Colors.red, colorText: Colors.white);
+        return false;
+      }
+
+      // 2) Insert row profil ke tabel public.users
+      await _supabase.from('users').insert({
+        'id': response.user!.id,
+        'username': user,
+        'role': user.toLowerCase() == 'admin' ? 'admin' : 'user',
+      });
+
+      Get.snackbar('Berhasil', 'Register berhasil, silakan login',
+          backgroundColor: Colors.green, colorText: Colors.white);
+      return true;
+    } on AuthException catch (e) {
+      Get.snackbar('Error', e.message,
+          backgroundColor: Colors.red, colorText: Colors.white);
+      return false;
+    } on PostgrestException catch (e) {
+      Get.snackbar('Error', 'Gagal menyimpan profil: ${e.message}',
+          backgroundColor: Colors.red, colorText: Colors.white);
+      return false;
+    } catch (e) {
+      Get.snackbar('Error', 'Terjadi kesalahan: $e',
+          backgroundColor: Colors.red, colorText: Colors.white);
+      return false;
+    }
   }
 
-  // Fungsi Login
+  // ---------------------------------------------------------------------------
+  // LOGIN
+  // ---------------------------------------------------------------------------
   Future<bool> login(String user, String pass) async {
     if (user.isEmpty || pass.isEmpty) {
       Get.snackbar('Error', 'Username dan password tidak boleh kosong',
@@ -56,41 +144,70 @@ class AuthController extends GetxController {
       return false;
     }
 
-    final prefs = await SharedPreferences.getInstance();
-    
-    // Ambil data yang tersimpan
-    String? savedUser = prefs.getString('username');
-    String? savedPass = prefs.getString('password');
-    
-    // Kalau belum pernah register, bisa register dulu
-    if (savedUser == null) {
-      Get.snackbar('Info', 'Silakan register terlebih dahulu',
-          backgroundColor: Colors.orange, colorText: Colors.white);
-      return false;
-    }
-    
-    if (user == savedUser && pass == savedPass) {
-      await prefs.setBool('isLogin', true);
+    try {
+      // 1) Sign in pakai email dummy
+      final response = await _supabase.auth.signInWithPassword(
+        email: '$user@dummy.com',
+        password: pass,
+      );
+
+      if (response.user == null) {
+        Get.snackbar('Error', 'Username atau password salah',
+            backgroundColor: Colors.red, colorText: Colors.white);
+        return false;
+      }
+
+      // 2) Ambil profil dari tabel public.users
+      final data = await _supabase
+          .from('users')
+          .select('username, role')
+          .eq('id', response.user!.id)
+          .single();
+
+      username.value = (data['username'] as String?) ?? user;
+      currentRole.value = (data['role'] as String?) ?? 'user';
       isLogin.value = true;
-      username.value = user;
+
       Get.snackbar('Berhasil', 'Login berhasil',
           backgroundColor: Colors.green, colorText: Colors.white);
       return true;
-    } else {
-      Get.snackbar('Error', 'Username atau password salah',
+    } on AuthException catch (e) {
+      Get.snackbar('Error', e.message,
+          backgroundColor: Colors.red, colorText: Colors.white);
+      return false;
+    } on PostgrestException catch (e) {
+      Get.snackbar('Error', 'Gagal mengambil profil: ${e.message}',
+          backgroundColor: Colors.red, colorText: Colors.white);
+      return false;
+    } catch (e) {
+      Get.snackbar('Error', 'Terjadi kesalahan: $e',
           backgroundColor: Colors.red, colorText: Colors.white);
       return false;
     }
   }
 
-  // Fungsi Logout
+  // ---------------------------------------------------------------------------
+  // LOGOUT
+  // ---------------------------------------------------------------------------
   Future<void> logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('isLogin', false);
-    isLogin.value = false;
-    username.value = '';
-    Get.offAllNamed('/login');
-    Get.snackbar('Berhasil', 'Logout berhasil',
-        backgroundColor: Colors.green, colorText: Colors.white);
+    try {
+      await _supabase.auth.signOut();
+      _resetState();
+
+      Get.offAllNamed('/login');
+      Get.snackbar('Berhasil', 'Logout berhasil',
+          backgroundColor: Colors.green, colorText: Colors.white);
+    } on AuthException catch (e) {
+      Get.snackbar('Error', e.message,
+          backgroundColor: Colors.red, colorText: Colors.white);
+    } catch (e) {
+      Get.snackbar('Error', 'Gagal logout: $e',
+          backgroundColor: Colors.red, colorText: Colors.white);
+    }
   }
+
+  // ---------------------------------------------------------------------------
+  // HELPER RBAC — untuk guard/menu admin di view
+  // ---------------------------------------------------------------------------
+  bool get isAdmin => currentRole.value == 'admin';
 }

@@ -92,10 +92,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 Text('No Movies Found 🎬',
                     style: TextStyle(color: Color(0xFFB3B3B3), fontSize: 16)),
                 SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () => Get.toNamed('/add-movie'),
-                  child: Text('Add Your First Movie'),
-                ),
+                Obx(() => authController.isAdmin
+                    ? ElevatedButton(
+                        onPressed: () => Get.toNamed('/add-movie'),
+                        child: Text('Add Your First Movie'),
+                      )
+                    : SizedBox.shrink()),
               ],
             ),
           );
@@ -260,11 +262,13 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         );
       }),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Get.toNamed('/add-movie'),
-        backgroundColor: Color(0xFFE50914),
-        child: Icon(Icons.add),
-      ),
+      floatingActionButton: Obx(() => authController.isAdmin
+          ? FloatingActionButton(
+              onPressed: () => Get.toNamed('/add-movie'),
+              backgroundColor: Color(0xFFE50914),
+              child: Icon(Icons.add),
+            )
+          : SizedBox.shrink()),
     );
   }
 }

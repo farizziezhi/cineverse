@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/movie_controller.dart';
+import '../controllers/auth_controller.dart';
 import '../models/movie_model.dart';
+import '../widgets/trailer_popup.dart';
 
 class DetailScreen extends StatelessWidget {
   final String id;
   final MovieController movieController = Get.find();
+  final AuthController authController = Get.find();
 
   DetailScreen({super.key, required this.id});
 
@@ -99,7 +102,7 @@ class DetailScreen extends StatelessWidget {
                   if (movie.urlTrailer.isNotEmpty)
                     ElevatedButton.icon(
                       onPressed: () {
-                        Get.snackbar('Trailer', 'Opening trailer...');
+                        showTrailerPopup(movie.urlTrailer);
                       },
                       icon: Icon(Icons.play_arrow),
                       label: Text('WATCH TRAILER'),
@@ -108,49 +111,50 @@ class DetailScreen extends StatelessWidget {
                       ),
                     ),
                   SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () => Get.toNamed('/edit-movie/$id'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xFF1A1A1A),
-                          ),
-                          child: Text('✏ EDIT'),
-                        ),
-                      ),
-                      SizedBox(width: 16),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Get.defaultDialog(
-                              title: 'Hapus Film',
-                              middleText: 'Yakin ingin menghapus film ini?',
-                              textConfirm: 'Hapus',
-                              textCancel: 'Batal',
-                              confirmTextColor: Colors.white,
-                          onConfirm: () async {
-                                Get.back();
-                                bool success = await movieController.deleteMovie(id);
-                                if (success) {
-                                  final ctx = Get.context!;
-                                  Get.offAllNamed('/home');
-                                  Get.snackbar('Berhasil', 'Film berhasil dihapus',
-                                      backgroundColor: Color(0xFF1A1A1A),
-                                      colorText: Colors.white,
-                                      snackPosition: SnackPosition.BOTTOM);
-                                }
-                              },
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                          ),
-                          child: Text('🗑 DELETE'),
-                        ),
-                      ),
-                    ],
-                  ),
+                  Obx(() => authController.isAdmin
+                      ? Row(
+                          children: [
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: () => Get.toNamed('/edit-movie/$id'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Color(0xFF1A1A1A),
+                                ),
+                                child: Text('✏ EDIT'),
+                              ),
+                            ),
+                            SizedBox(width: 16),
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  Get.defaultDialog(
+                                    title: 'Hapus Film',
+                                    middleText: 'Yakin ingin menghapus film ini?',
+                                    textConfirm: 'Hapus',
+                                    textCancel: 'Batal',
+                                    confirmTextColor: Colors.white,
+                                onConfirm: () async {
+                                      Get.back();
+                                      bool success = await movieController.deleteMovie(id);
+                                      if (success) {
+                                        Get.offAllNamed('/home');
+                                        Get.snackbar('Berhasil', 'Film berhasil dihapus',
+                                            backgroundColor: Color(0xFF1A1A1A),
+                                            colorText: Colors.white,
+                                            snackPosition: SnackPosition.BOTTOM);
+                                      }
+                                    },
+                                  );
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.red,
+                                ),
+                                child: Text('🗑 DELETE'),
+                              ),
+                            ),
+                          ],
+                        )
+                      : SizedBox.shrink()),
                 ],
               ),
             ),
