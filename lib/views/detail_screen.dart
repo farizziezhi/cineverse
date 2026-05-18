@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../controllers/movie_controller.dart';
 import '../controllers/auth_controller.dart';
 import '../models/movie_model.dart';
+import '../utils/date_formatter.dart';
 import '../widgets/trailer_popup.dart';
 
 class DetailScreen extends StatelessWidget {
@@ -87,6 +88,19 @@ class DetailScreen extends StatelessWidget {
                       ),
                     ],
                   ),
+                  SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Icon(Icons.calendar_today,
+                          size: 16, color: Color(0xFFB3B3B3)),
+                      SizedBox(width: 6),
+                      Text(
+                        formatTanggalRilis(movie.tanggalRilis),
+                        style:
+                            TextStyle(color: Color(0xFFB3B3B3), fontSize: 14),
+                      ),
+                    ],
+                  ),
                   SizedBox(height: 16),
                   Text(
                     'Ringkasan:',
@@ -137,6 +151,7 @@ class DetailScreen extends StatelessWidget {
                                     textConfirm: 'Hapus',
                                     textCancel: 'Batal',
                                     confirmTextColor: Colors.white,
+                                    buttonColor: Colors.red,
                                     onConfirm: () async {
                                       Get.back();
                                       bool success =

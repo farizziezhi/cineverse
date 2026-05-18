@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/movie_controller.dart';
 import '../models/movie_model.dart';
+import '../utils/date_formatter.dart';
 
 class AddMovieScreen extends StatelessWidget {
   final MovieController movieController = Get.find();
@@ -12,6 +13,7 @@ class AddMovieScreen extends StatelessWidget {
   final ringkasanController = TextEditingController();
   final posterController = TextEditingController();
   final sampulController = TextEditingController();
+  final tanggalRilisController = TextEditingController();
   final ratingController = TextEditingController();
   final kategoriController = TextEditingController();
   final trailerController = TextEditingController();
@@ -74,6 +76,18 @@ class AddMovieScreen extends StatelessWidget {
               ),
               SizedBox(height: 16),
               TextFormField(
+                controller: tanggalRilisController,
+                keyboardType: TextInputType.datetime,
+                style: TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  hintText: 'Tanggal Rilis (YYYY-MM-DD)',
+                  prefixIcon:
+                      Icon(Icons.calendar_today, color: Color(0xFFB3B3B3)),
+                ),
+                validator: validateTanggalRilis,
+              ),
+              SizedBox(height: 16),
+              TextFormField(
                 controller: ratingController,
                 keyboardType: TextInputType.number,
                 style: TextStyle(color: Colors.white),
@@ -122,7 +136,7 @@ class AddMovieScreen extends StatelessWidget {
                             gambarSampul: sampulController.text.isEmpty
                                 ? posterController.text
                                 : sampulController.text,
-                            tanggalRilis: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+                            tanggalRilis: parseTanggalRilisInput(tanggalRilisController.text),
                             skorRating: int.parse(ratingController.text),
                             kategori: kategoriController.text,
                             urlTrailer: trailerController.text,
@@ -130,7 +144,6 @@ class AddMovieScreen extends StatelessWidget {
 
                           bool success = await movieController.addMovie(newMovie);
                           if (success) {
-                            final ctx = Get.context!;
                             Get.offAllNamed('/home');
                             Get.snackbar('Berhasil', 'Film berhasil ditambahkan',
                                 backgroundColor: Color(0xFF1A1A1A),

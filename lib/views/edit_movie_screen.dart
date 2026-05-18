@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/movie_controller.dart';
 import '../models/movie_model.dart';
+import '../utils/date_formatter.dart';
 
 class EditMovieScreen extends StatelessWidget {
   final String id;
@@ -25,6 +26,8 @@ class EditMovieScreen extends StatelessWidget {
     final ringkasanController = TextEditingController(text: movie.ringkasan);
     final posterController = TextEditingController(text: movie.gambarPoster);
     final sampulController = TextEditingController(text: movie.gambarSampul);
+    final tanggalRilisController =
+        TextEditingController(text: formatTanggalRilisInput(movie.tanggalRilis));
     final ratingController = TextEditingController(text: movie.skorRating.toString());
     final kategoriController = TextEditingController(text: movie.kategori);
     final trailerController = TextEditingController(text: movie.urlTrailer);
@@ -82,6 +85,18 @@ class EditMovieScreen extends StatelessWidget {
               ),
               SizedBox(height: 16),
               TextFormField(
+                controller: tanggalRilisController,
+                keyboardType: TextInputType.datetime,
+                style: TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  hintText: 'Tanggal Rilis (YYYY-MM-DD)',
+                  prefixIcon:
+                      Icon(Icons.calendar_today, color: Color(0xFFB3B3B3)),
+                ),
+                validator: validateTanggalRilis,
+              ),
+              SizedBox(height: 16),
+              TextFormField(
                 controller: ratingController,
                 keyboardType: TextInputType.number,
                 style: TextStyle(color: Colors.white),
@@ -131,7 +146,7 @@ class EditMovieScreen extends StatelessWidget {
                             gambarSampul: sampulController.text.isEmpty
                                 ? posterController.text
                                 : sampulController.text,
-                            tanggalRilis: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+                            tanggalRilis: parseTanggalRilisInput(tanggalRilisController.text),
                             skorRating: int.parse(ratingController.text),
                             kategori: kategoriController.text,
                             urlTrailer: trailerController.text,

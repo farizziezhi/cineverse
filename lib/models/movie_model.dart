@@ -23,6 +23,13 @@ class Movie {
 
   static int _parseInt(dynamic value) {
     if (value is int) return value;
+    if (value is String) return int.tryParse(value) ?? 0;
+
+    return 0;
+  }
+
+  static int _parseTanggalRilis(dynamic value) {
+    if (value is int) return value;
 
     if (value is String) {
       final parsedInt = int.tryParse(value);
@@ -45,7 +52,7 @@ class Movie {
       ringkasan: json['ringkasan']?.toString() ?? '',
       gambarPoster: json['gambar_poster']?.toString() ?? '',
       gambarSampul: json['gambar_sampul']?.toString() ?? '',
-      tanggalRilis: _parseInt(json['tanggal_rilis']),
+      tanggalRilis: _parseTanggalRilis(json['tanggal_rilis']),
       skorRating: _parseInt(json['skor_rating']),
       kategori: json['kategori']?.toString() ?? '',
       urlTrailer: json['url_trailer']?.toString() ?? '',
