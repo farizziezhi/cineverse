@@ -16,9 +16,11 @@ Future<void> showTrailerPopup(String url) async {
 
   await Get.dialog(
     const TrailerDialog(),
-    barrierDismissible: false,
+    barrierDismissible: true,
     barrierColor: Colors.black87,
   );
+
+  controller.disposePlayer();
 }
 
 class TrailerDialog extends StatelessWidget {
@@ -104,19 +106,16 @@ class TrailerDialog extends StatelessWidget {
 
           // Tombol tutup (X) di pojok kanan atas.
           Positioned(
-            top: -12,
-            right: -12,
+            top: 8,
+            right: 8,
             child: Material(
               color: const Color(0xFFE50914),
               shape: const CircleBorder(),
               child: InkWell(
                 customBorder: const CircleBorder(),
-                onTap: () {
-                  c.disposePlayer();
-                  Get.back();
-                },
+                onTap: Get.back,
                 child: const Padding(
-                  padding: EdgeInsets.all(6),
+                  padding: EdgeInsets.all(8),
                   child: Icon(Icons.close, color: Colors.white, size: 20),
                 ),
               ),
