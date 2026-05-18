@@ -139,8 +139,8 @@ class EditMovieScreen extends StatelessWidget {
 
                           bool success = await movieController.updateMovie(id, updatedMovie);
                           if (success) {
-                            final ctx = Get.context!;
-                            Get.offAllNamed('/home');
+                            Get.until((route) => route.settings.name == '/home');
+                            Get.toNamed('/detail/$id');
                             Get.snackbar('Berhasil', 'Film berhasil diupdate',
                                 backgroundColor: Color(0xFF1A1A1A),
                                 colorText: Colors.white,
