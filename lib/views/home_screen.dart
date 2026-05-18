@@ -25,9 +25,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _autoSlide() {
     if (!mounted) return;
-    final topCount = movieController.movies.length < 5
-        ? movieController.movies.length
-        : 5;
+    final topCount =
+        movieController.movies.length < 5 ? movieController.movies.length : 5;
     if (topCount == 0) {
       Future.delayed(Duration(seconds: 3), _autoSlide);
       return;
@@ -65,7 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           IconButton(
             icon: Icon(Icons.search),
-            onPressed: () => Get.snackbar('Info', 'Fitur search coming soon'),
+            onPressed: () => Get.toNamed('/movies'),
           ),
           IconButton(
             icon: Icon(Icons.person),
@@ -122,7 +121,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     return GestureDetector(
                       onTap: () => Get.toNamed('/detail/${movie.id}'),
                       child: Container(
-                        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        margin:
+                            EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(20),
                           image: DecorationImage(
@@ -155,13 +155,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Container(
-                                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: 12, vertical: 4),
                                     decoration: BoxDecoration(
                                       color: Color(0xFFE50914),
                                       borderRadius: BorderRadius.circular(20),
                                     ),
                                     child: Text('★ ${movie.skorRating}',
-                                        style: TextStyle(color: Colors.white, fontSize: 12)),
+                                        style: TextStyle(
+                                            color: Colors.white, fontSize: 12)),
                                   ),
                                   SizedBox(height: 12),
                                   Text(
@@ -174,13 +176,17 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                   SizedBox(height: 8),
                                   Text(movie.kategori,
-                                      style: TextStyle(color: Colors.white70, fontSize: 14)),
+                                      style: TextStyle(
+                                          color: Colors.white70, fontSize: 14)),
                                   SizedBox(height: 12),
                                   Row(
                                     children: [
-                                      Icon(Icons.play_circle, color: Color(0xFFE50914), size: 20),
+                                      Icon(Icons.play_circle,
+                                          color: Color(0xFFE50914), size: 20),
                                       SizedBox(width: 8),
-                                      Text('Watch Now', style: TextStyle(color: Colors.white)),
+                                      Text('Watch Now',
+                                          style:
+                                              TextStyle(color: Colors.white)),
                                     ],
                                   ),
                                 ],
@@ -198,25 +204,25 @@ class _HomeScreenState extends State<HomeScreen> {
             // Indicator dots
             SliverToBoxAdapter(
               child: Obx(() => Padding(
-                padding: EdgeInsets.symmetric(vertical: 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(
-                    topMovies.length,
-                    (index) => Container(
-                      margin: EdgeInsets.symmetric(horizontal: 4),
-                      width: _currentPage.value == index ? 16 : 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(4),
-                        color: _currentPage.value == index
-                            ? Color(0xFFE50914)
-                            : Color(0xFFB3B3B3),
+                    padding: EdgeInsets.symmetric(vertical: 8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(
+                        topMovies.length,
+                        (index) => Container(
+                          margin: EdgeInsets.symmetric(horizontal: 4),
+                          width: _currentPage.value == index ? 16 : 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(4),
+                            color: _currentPage.value == index
+                                ? Color(0xFFE50914)
+                                : Color(0xFFB3B3B3),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-              )),
+                  )),
             ),
 
             // Category Row
@@ -235,8 +241,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     TextButton(
-                      onPressed: () => Get.snackbar('Info', 'See all movies coming soon'),
-                      child: Text('See All >', style: TextStyle(color: Color(0xFFE50914))),
+                      onPressed: () => Get.toNamed('/movies'),
+                      child: Text('See All >',
+                          style: TextStyle(color: Color(0xFFE50914))),
                     ),
                   ],
                 ),
@@ -248,7 +255,8 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: EdgeInsets.all(16),
               sliver: SliverGrid(
                 delegate: SliverChildBuilderDelegate(
-                  (context, index) => MovieCard(movie: movieController.movies[index]),
+                  (context, index) =>
+                      MovieCard(movie: movieController.movies[index]),
                   childCount: movieController.movies.length,
                 ),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(

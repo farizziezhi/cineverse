@@ -10,6 +10,7 @@ import 'views/detail_screen.dart';
 import 'views/add_movie_screen.dart';
 import 'views/edit_movie_screen.dart';
 import 'views/profile_screen.dart';
+import 'views/movie_list_screen.dart';
 import 'controllers/auth_controller.dart';
 import 'controllers/movie_controller.dart';
 
@@ -75,9 +76,14 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/login', page: () => LoginScreen()),
         GetPage(name: '/register', page: () => RegisterScreen()),
         GetPage(name: '/home', page: () => HomeScreen()),
-        GetPage(name: '/detail/:id', page: () => DetailScreen(id: Get.parameters['id']!)),
+        GetPage(
+            name: '/detail/:id',
+            page: () => DetailScreen(id: Get.parameters['id']!)),
+        GetPage(name: '/movies', page: () => MovieListScreen()),
         GetPage(name: '/add-movie', page: () => AddMovieScreen()),
-        GetPage(name: '/edit-movie/:id', page: () => EditMovieScreen(id: Get.parameters['id']!)),
+        GetPage(
+            name: '/edit-movie/:id',
+            page: () => EditMovieScreen(id: Get.parameters['id']!)),
         GetPage(name: '/profile', page: () => ProfileScreen()),
       ],
       debugShowCheckedModeBanner: false,
