@@ -21,20 +21,34 @@ class Movie {
     required this.urlTrailer,
   });
 
+  static int _parseInt(dynamic value) {
+    if (value is int) return value;
+
+    if (value is String) {
+      final parsedInt = int.tryParse(value);
+      if (parsedInt != null) return parsedInt;
+
+      final parsedDate = DateTime.tryParse(value);
+      if (parsedDate != null) {
+        return parsedDate.millisecondsSinceEpoch ~/ 1000;
+      }
+    }
+
+    return 0;
+  }
+
   // Dari JSON ke object
   factory Movie.fromJson(Map<String, dynamic> json) {
     return Movie(
-      id: json['id'].toString(),
-      judul: json['judul'] ?? '',
-      ringkasan: json['ringkasan'] ?? '',
-      gambarPoster: json['gambar_poster'] ?? '',
-      gambarSampul: json['gambar_sampul'] ?? '',
-      tanggalRilis: json['tanggal_rilis'] ?? 0,
-      skorRating: json['skor_rating'] is String
-          ? int.tryParse(json['skor_rating']) ?? 0
-          : json['skor_rating'] ?? 0,
-      kategori: json['kategori'] ?? '',
-      urlTrailer: json['url_trailer'] ?? '',
+      id: json['id']?.toString(),
+      judul: json['judul']?.toString() ?? '',
+      ringkasan: json['ringkasan']?.toString() ?? '',
+      gambarPoster: json['gambar_poster']?.toString() ?? '',
+      gambarSampul: json['gambar_sampul']?.toString() ?? '',
+      tanggalRilis: _parseInt(json['tanggal_rilis']),
+      skorRating: _parseInt(json['skor_rating']),
+      kategori: json['kategori']?.toString() ?? '',
+      urlTrailer: json['url_trailer']?.toString() ?? '',
     );
   }
 

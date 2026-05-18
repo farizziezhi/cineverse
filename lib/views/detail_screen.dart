@@ -42,6 +42,8 @@ class DetailScreen extends StatelessWidget {
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
+                    height: 250,
+                    width: double.infinity,
                     color: Color(0xFF333333),
                     child: Center(child: Icon(Icons.broken_image, size: 50)),
                   );
@@ -72,7 +74,8 @@ class DetailScreen extends StatelessWidget {
                       ),
                       SizedBox(width: 16),
                       Container(
-                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
                           color: Color(0xFFE50914),
                           borderRadius: BorderRadius.circular(8),
@@ -129,19 +132,23 @@ class DetailScreen extends StatelessWidget {
                                 onPressed: () {
                                   Get.defaultDialog(
                                     title: 'Hapus Film',
-                                    middleText: 'Yakin ingin menghapus film ini?',
+                                    middleText:
+                                        'Yakin ingin menghapus film ini?',
                                     textConfirm: 'Hapus',
                                     textCancel: 'Batal',
                                     confirmTextColor: Colors.white,
-                                onConfirm: () async {
+                                    onConfirm: () async {
                                       Get.back();
-                                      bool success = await movieController.deleteMovie(id);
+                                      bool success =
+                                          await movieController.deleteMovie(id);
                                       if (success) {
                                         Get.offAllNamed('/home');
-                                        Get.snackbar('Berhasil', 'Film berhasil dihapus',
+                                        Get.snackbar(
+                                            'Berhasil', 'Film berhasil dihapus',
                                             backgroundColor: Color(0xFF1A1A1A),
                                             colorText: Colors.white,
-                                            snackPosition: SnackPosition.BOTTOM);
+                                            snackPosition:
+                                                SnackPosition.BOTTOM);
                                       }
                                     },
                                   );
