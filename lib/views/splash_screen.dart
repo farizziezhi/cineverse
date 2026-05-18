@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -29,10 +29,9 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _checkLoginAndNavigate() async {
-    final prefs = await SharedPreferences.getInstance();
-    bool isLogin = prefs.getBool('isLogin') ?? false;
-    
-    if (isLogin) {
+    final session = Supabase.instance.client.auth.currentSession;
+
+    if (session != null) {
       Get.offAllNamed('/home');
     } else {
       Get.offAllNamed('/login');
